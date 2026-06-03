@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-geometry_renderer.py — 國中數學幾何圖形 SVG 產生器
+geometry_renderer.py — 國小數學幾何圖形 SVG 產生器
 支援：三角形、四邊形、圓、坐標平面、立體圖形、平行線、三角形三心
+
 
 Usage:
   python3 geometry_renderer.py <spec.json> <output_dir/>
@@ -22,6 +23,13 @@ Output:
 
 import math, json, sys
 from pathlib import Path
+
+if sys.platform.startswith('win'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except AttributeError:
+        pass
+
 
 
 # ══════════════════════════════════════════════════════
