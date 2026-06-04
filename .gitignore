@@ -13,3 +13,7 @@ __pycache__/
 .env
 *.key
 credentials.*
+
+# 本地臨時與出題目錄
+scratch/
+

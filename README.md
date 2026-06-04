@@ -54,6 +54,26 @@ Copy-Item teaching-exam-skills/skills/* $HOME/.claude/skills/ -Recurse
 
 ---
 
+## 💡 AI 段考命題最佳實踐與提示詞 (Best Practices & Prompts)
+
+為了讓 AI Agent 發揮 100% 的精確出題效果，建議使用者採用以下避坑工作流與指令。
+
+### 1. 避坑的「黃金出題三步驟」
+各教科書版本（康軒、翰林、南一）每年、各校的段考範圍常有微調。**請不要直接讓 AI 憑空估算或上網搜尋**，這很容易產生單元範圍錯亂的「幻覺」。
+* **第一步：提供課本目錄** ➔ 出題前，直接拍照上傳該學期實體課本的「目錄頁」圖片給 AI，或手動貼上目錄文字。這能確保出題單元 100% 正確。
+* **第二步：提供難度參考範本** ➔ 將「學校平時練習卷或習作的 2~3 題」拍照或打字提供給 AI（Few-Shot 學習），AI 出出來的題目難易度就會與學校教學完全契合。
+* **第三步：一鍵生成** ➔ 交由 AI 進行雙向細目表規劃並一鍵產生 Word 試卷。
+
+### 2. 實用提示詞範本
+
+#### 提示詞 A：在線讀取（免下載直接出題）
+> 「請讀取這份國小出題技能說明：`https://github.com/你的帳號/teaching-exam-skills/blob/master/skills/es-math-exam/SKILL.md`。讀完後請扮演裡面的國小數學段考出題專家，幫我出一份【康軒版五年級下學期第二次段考】的題目。」
+
+#### 提示詞 B：本地端執行（自動排版一鍵產出 Word 文件）
+> 「請讀取本地的 `skills\es-math-exam\SKILL.md` 技能。我想出一份【翰林版五下期末考】的試卷，請幫我設計題目，並自動執行 `skills\es-math-exam\scripts\generate_exam_docx.py` 腳本，將排版好的題目卷、答案卷和雙向細目表產出到本地的 `output` 資料夾。」
+
+---
+
 ## 📄 授權
 
 MIT License，詳見 [LICENSE](LICENSE)。歡迎自由使用與修改。

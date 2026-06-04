@@ -300,8 +300,14 @@ def render_triangle(c, cfg):
         dx, dy = p2[0]-p1[0], p2[1]-p1[1]
         t = ((v[0]-p1[0])*dx + (v[1]-p1[1])*dy) / (dx*dx+dy*dy)
         fx, fy = p1[0]+t*dx, p1[1]+t*dy
-        c.line(v[0], v[1], fx, fy, color='#666', width=1.2, dash='4,3')
+        c.line(v[0], v[1], fx, fy, color='#222', width=1.3, dash='4,3')
         c.right_angle_mark(fx, fy, v[0], v[1], p2[0], p2[1], size=9)
+        # 高（對稱軸）標籤
+        al = cfg.get('altitude_label')
+        if al:
+            mx, my = (v[0]+fx)/2, (v[1]+fy)/2
+            c.text(mx + 12, my, al, size=12, italic=True)
+
 
     # ─ 中線 ─
     mf = cfg.get('median_from')
