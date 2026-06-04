@@ -72,25 +72,13 @@ def add_math_runs(paragraph, text):
                 run.font.name = '新細明體'
                 run.font.size = Pt(11)
         else:
-            # 處理未知數 {x} 或 {y} 為斜體 Cambria，其餘為新細明體
+            # 將國小未知數 {x} 或 {y} 降級/轉換為空的「□」方框，避免 x, y 字母造成超出範圍的誤會
             subparts = re.split(r'(\{x\}|\{y\})', part)
             for subpart in subparts:
                 if subpart in ('{x}', '{y}'):
-                    val = subpart.strip('{}')
-                    # 用 OMML 來渲染未知數，外觀會最精準漂亮
-                    omml_var_xml = (
-                        f'<m:oMath {nsdecls("m")} xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
-                        f'<m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/></w:rPr><m:t>{val}</m:t></m:r>'
-                        f'</m:oMath>'
-                    )
-                    try:
-                        omml_var_el = parse_xml(omml_var_xml)
-                        paragraph._element.append(omml_var_el)
-                    except Exception:
-                        run = paragraph.add_run(val)
-                        run.font.name = 'Cambria'
-                        run.font.size = Pt(11)
-                        run.italic = True
+                    run = paragraph.add_run("□")
+                    run.font.name = '新細明體'
+                    run.font.size = Pt(11)
                 else:
                     cleaned = clean_math_text(subpart)
                     if cleaned:
@@ -186,13 +174,13 @@ def create_exam_paper(data, out_dir, geom_dir):
             p_opt = doc.add_paragraph()
             p_opt.paragraph_format.left_indent = Cm(1.0)
             
-            p_opt.add_run("  (A) ")
+            p_opt.add_run("  ➀ ")
             add_math_runs(p_opt, opts.get('A',''))
-            p_opt.add_run("   (B) ")
+            p_opt.add_run("   ➁ ")
             add_math_runs(p_opt, opts.get('B',''))
-            p_opt.add_run("   (C) ")
+            p_opt.add_run("   ➂ ")
             add_math_runs(p_opt, opts.get('C',''))
-            p_opt.add_run("   (D) ")
+            p_opt.add_run("   ➃ ")
             add_math_runs(p_opt, opts.get('D',''))
             
     # 二、填充題與計算題分類
@@ -230,14 +218,23 @@ def create_exam_paper(data, out_dir, geom_dir):
             if q.get('geometry'):
                 insert_geometry_image(doc, f"open_{q['number']}_fig", q, geom_dir)
                 
-            for sq in q.get('sub_questions', []):
+            if len(q.get('sub_questions', [])) == 1:
+                sq = q['sub_questions'][0]
                 p_sub = doc.add_paragraph()
-                p_sub.paragraph_format.left_indent = Cm(1.0)
-                p_sub.add_run(f"{sq.get('label','')} ")
+                p_sub.paragraph_format.left_indent = Cm(0.5)
                 add_math_runs(p_sub, sq.get('question',''))
                 
                 if sq.get('geometry'):
                     insert_geometry_image(doc, f"open_{q['number']}_{sq.get('label','').strip('()')}_fig", sq, geom_dir)
+            else:
+                for sq in q.get('sub_questions', []):
+                    p_sub = doc.add_paragraph()
+                    p_sub.paragraph_format.left_indent = Cm(1.0)
+                    p_sub.add_run(f"{sq.get('label','')} ")
+                    add_math_runs(p_sub, sq.get('question',''))
+                    
+                    if sq.get('geometry'):
+                        insert_geometry_image(doc, f"open_{q['number']}_{sq.get('label','').strip('()')}_fig", sq, geom_dir)
                     
             p_space = doc.add_paragraph("\n\n")
             
@@ -260,7 +257,8 @@ def create_answer_paper(data, out_dir):
     mc_questions = data.get('mc_questions', [])
     if mc_questions:
         add_heading_2(doc, "一、選擇題答案")
-        ans_list = [f"({q['number']}) {q['answer']}" for q in mc_questions]
+        ans_map = {'A': '➀', 'B': '➁', 'C': '➂', 'D': '➃'}
+        ans_list = [f"({q['number']}) {ans_map.get(q['answer'], q['answer'])}" for q in mc_questions]
         p = doc.add_paragraph("  ,  ".join(ans_list))
         p.paragraph_format.left_indent = Cm(0.5)
         for q in mc_questions:
@@ -280,18 +278,31 @@ def create_answer_paper(data, out_dir):
             add_math_runs(p_q, q.get('context',''))
             p_q.runs[0].bold = True
             
-            for sq in q.get('sub_questions', []):
+            if len(q.get('sub_questions', [])) == 1:
+                sq = q['sub_questions'][0]
                 p_ans = doc.add_paragraph()
-                p_ans.paragraph_format.left_indent = Cm(1.0)
-                p_ans.add_run(f"{sq.get('label','')} ")
+                p_ans.paragraph_format.left_indent = Cm(0.5)
                 add_math_runs(p_ans, sq.get('question',''))
                 p_ans.add_run(" ➔ 答：")
                 add_math_runs(p_ans, sq.get('answer',''))
                 
                 p_sol = doc.add_paragraph()
-                p_sol.paragraph_format.left_indent = Cm(1.2)
+                p_sol.paragraph_format.left_indent = Cm(0.7)
                 p_sol.add_run("解析：")
                 add_math_runs(p_sol, sq.get('solution',''))
+            else:
+                for sq in q.get('sub_questions', []):
+                    p_ans = doc.add_paragraph()
+                    p_ans.paragraph_format.left_indent = Cm(1.0)
+                    p_ans.add_run(f"{sq.get('label','')} ")
+                    add_math_runs(p_ans, sq.get('question',''))
+                    p_ans.add_run(" ➔ 答：")
+                    add_math_runs(p_ans, sq.get('answer',''))
+                    
+                    p_sol = doc.add_paragraph()
+                    p_sol.paragraph_format.left_indent = Cm(1.2)
+                    p_sol.add_run("解析：")
+                    add_math_runs(p_sol, sq.get('solution',''))
                 
     docx_path = out_dir / f"{grade}數學第{en}次段考_答案卷（教師版）.docx"
     doc.save(docx_path)
